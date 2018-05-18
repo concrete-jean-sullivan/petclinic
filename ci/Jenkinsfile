@@ -1,0 +1,53 @@
+pipeline{
+    agent { label 'cloud001-slave' }
+        stages{
+            
+            stage('Clean Workspace'){
+            steps{
+                sh 'echo -e "\033[0;34m## Limpando o Workspace ##\033[0m"'
+                deleteDir()
+                }
+            }
+            
+            stage('Gitlab Checkout - Petclinic'){
+            steps{
+                dir('petclinic'){
+                sh 'echo -e "\033[0;34m ## Gitlab Checkout ##\033[0m"'
+                 git branch: 'develop',
+                 credentialsId: '76a11c66-201d-41e2-afcb-699ad2e7a7fc',
+                 url: 'https://github.com/concrete-jean-sullivan/petclinic.git'
+                }
+            }
+        }
+            stage('Build'){
+                steps{
+                    dir('petclinic'){
+                        sh 'echo -e "\033[0;34m ## Build ##\033[0m"'
+ //                           withMaven(globalMavenSettingsConfig: '', maven: 'maven', mavenLocalRepo: '.repository') {
+                                sh 'mvn clean package'
+                                }
+                           }
+                        
+            }
+            
+            stage("Create Artifact"){
+            steps{
+                dir('petclinic/target'){
+                    archiveArtifacts '**/*.war'
+                }
+            }
+        }
+
+            stage("Deploy Tomcat"){
+            steps{
+                dir('petclinic/target'){
+                    sh '''
+                    scp petclinic.war cloud003:/home/administrator/
+                    echo -e "\033[0;34m ## Deploy to Tomcat ##\033[0m"
+                    ssh cloud003 'sudo /root/tomcat-stop.sh'
+                    '''
+                }
+            }
+        }
+    }   
+}

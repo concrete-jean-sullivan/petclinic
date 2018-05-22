@@ -40,7 +40,7 @@ pipeline{
             stage ("Nexus Publish"){
             steps{
                 withCredentials([usernamePassword(credentialsId: 'nexus_id', passwordVariable: 'NX_PASS', usernameVariable: 'NX_USER')]) {
-                    sh "curl --upload-file ${WORKSPACE}/petclinic/petclinic/target/petclinic.war -u $NX_USER:$NX_PASS -v cloud003:8081/repository/petclinic/petclinic.war"
+                    sh "curl --upload-file ${WORKSPACE}/petclinic/petclinic/target/petclinic.war -u $NX_USER:$NX_PASS -v cloud003:8081/repository/petclinic/$JOB_BASE_NAME-${BUILD_NUMBER}.war"
                 }
             }
         }
